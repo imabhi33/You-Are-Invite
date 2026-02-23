@@ -25,6 +25,12 @@ app.use("/api", apiRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
+  if (err?.code === 11000) {
+    return res.status(409).json({ message: "Duplicate data conflict. Please try again." });
+  }
+  if (err?.message === "Not allowed by CORS") {
+    return res.status(403).json({ message: "CORS blocked for this origin" });
+  }
   res.status(500).json({ message: "Internal server error" });
 });
 

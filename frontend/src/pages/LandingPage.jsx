@@ -24,9 +24,9 @@ export default function LandingPage() {
   return (
     <main className="relative min-h-screen">
       <div className="fixed left-0 right-0 top-0 z-40 border-b border-wedding-gold/20 bg-[#2b0f0f]/70 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
           <BrandLogo />
-          <Link to="/create" className="btn">Customize Now</Link>
+          <Link to="/create" className="btn whitespace-nowrap px-4 py-2 text-sm sm:px-5 sm:text-base">Customize Now</Link>
         </div>
       </div>
 

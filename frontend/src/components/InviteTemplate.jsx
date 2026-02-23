@@ -117,7 +117,7 @@ function InviteGallery({ galleryUrls = [], gallerySettings = [] }) {
     <section className="px-4 py-20">
       <div className="mx-auto max-w-6xl">
         <p className="text-center text-xs uppercase tracking-[0.35em] text-wedding-gold/70">Memory Lane</p>
-        <h2 className="text-center font-script text-7xl text-wedding-gold">Our Moments</h2>
+        <h2 className="text-center font-script text-5xl text-wedding-gold sm:text-6xl md:text-7xl">Our Moments</h2>
 
         <div className="mt-8 flex flex-wrap items-start justify-center gap-6">
           {images.map((src, idx) => {
@@ -174,7 +174,7 @@ function EventsTimeline({ events = [], fallbackVenue }) {
   return (
     <section className="px-4 py-16">
       <div className="mx-auto max-w-6xl">
-        <h2 className="text-center font-script text-7xl text-wedding-gold">Event Schedule</h2>
+        <h2 className="text-center font-script text-5xl text-wedding-gold sm:text-6xl md:text-7xl">Event Schedule</h2>
         <div className="relative mt-10">
           <div className="absolute left-1/2 top-0 hidden h-full w-[1px] -translate-x-1/2 bg-wedding-gold/30 md:block" />
           <div className="space-y-6">
@@ -186,7 +186,7 @@ function EventsTimeline({ events = [], fallbackVenue }) {
                 viewport={{ once: true }}
                 className={`card p-5 md:w-[46%] ${i % 2 ? "md:ml-auto" : ""}`}
               >
-                <h3 className="font-serif text-4xl text-wedding-gold">{event.title || "Event"}</h3>
+                <h3 className="font-serif text-3xl text-wedding-gold sm:text-4xl">{event.title || "Event"}</h3>
                 <p className="text-lg text-wedding-cream">{event.dateLabel || "Time TBA"}</p>
                 <p className="text-xs uppercase tracking-[0.3em] text-wedding-cream/60">{event.location || fallbackVenue}</p>
                 <p className="mt-2 text-wedding-cream/70">{event.description || "Celebration"}</p>
@@ -205,7 +205,7 @@ function VenueMap({ venue }) {
   return (
     <section className="px-4 py-16">
       <div className="card mx-auto max-w-6xl p-5">
-        <h2 className="text-center font-script text-6xl text-wedding-gold">Venue</h2>
+        <h2 className="text-center font-script text-5xl text-wedding-gold sm:text-6xl">Venue</h2>
         <p className="text-center uppercase tracking-[0.28em] text-wedding-cream/70">{venue}</p>
         <div className="mt-4 overflow-hidden rounded-2xl border border-wedding-gold/35">
           <iframe title="map" src={mapSrc} width="100%" height="340" loading="lazy" className="border-0" />
@@ -258,7 +258,7 @@ export default function InviteTemplate({ invite, previewMode = false }) {
       </section>
 
       <section className="px-4 py-16">
-        <h2 className="mb-6 text-center font-script text-7xl text-wedding-gold">Countdown</h2>
+        <h2 className="mb-6 text-center font-script text-5xl text-wedding-gold sm:text-6xl md:text-7xl">Countdown</h2>
         <Countdown targetDate={invite?.eventDate} />
       </section>
 

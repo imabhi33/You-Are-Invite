@@ -1,6 +1,7 @@
 import express from "express";
 import { cloudinary } from "../lib/cloudinary.js";
 import { env } from "../lib/env.js";
+import { sendInviteEmailSmtp } from "../lib/smtp.js";
 import { Invitation } from "../models/Invitation.js";
 import { createEditToken, createUniqueSlug } from "../utils/slug.js";
 
@@ -47,6 +48,9 @@ router.post("/invitations/create", asyncHandler(async (req, res) => {
   if (!groomName || !brideName || !eventDate || !venue) {
     return res.status(400).json({ message: "Missing required fields" });
   }
+  if (!email) {
+    return res.status(400).json({ message: "Email is required to deliver your links" });
+  }
 
   const slug = await createUniqueSlug(groomName, brideName);
   const editToken = createEditToken();
@@ -68,11 +72,33 @@ router.post("/invitations/create", asyncHandler(async (req, res) => {
     editToken
   });
 
+  const inviteUrl = `${env.appBaseUrl}/${invite.slug}`;
+  const editUrl = `${env.appBaseUrl}/edit/${invite.slug}?token=${invite.editToken}`;
+  let emailSent = true;
+  let emailError = "";
+
+  try {
+    await sendInviteEmailSmtp({
+      toEmail: email,
+      groomName,
+      brideName,
+      eventDate,
+      venue,
+      inviteUrl
+    });
+  } catch (error) {
+    emailSent = false;
+    emailError = error.message || "Invite created, but email could not be sent.";
+    console.error("[smtp] invite email failed:", error.message);
+  }
+
   return res.json({
     slug: invite.slug,
-    inviteUrl: `${env.appBaseUrl}/${invite.slug}`,
-    editUrl: `${env.appBaseUrl}/edit/${invite.slug}?token=${invite.editToken}`,
-    editToken: invite.editToken
+    inviteUrl,
+    editUrl,
+    editToken: invite.editToken,
+    emailSent,
+    emailError
   });
 }));
 

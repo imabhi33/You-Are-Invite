@@ -10,7 +10,14 @@ export const env = {
   mongoUri: process.env.MONGODB_URI,
   cloudName: process.env.CLOUD_NAME,
   apiKey: process.env.API_KEY,
-  apiSecret: process.env.API_SECRET
+  apiSecret: process.env.API_SECRET,
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: process.env.SMTP_PORT || "",
+  smtpSecure: process.env.SMTP_SECURE || "false",
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  smtpFromEmail: process.env.SMTP_FROM_EMAIL || "",
+  smtpFromName: process.env.SMTP_FROM_NAME || "You Are Invite"
 };
 
 const required = ["MONGODB_URI", "CLOUD_NAME", "API_KEY", "API_SECRET"];

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import OpeningCurtain from "../components/OpeningCurtain";
 import InviteTemplate from "../components/InviteTemplate";
 import { api, uploadToCloudinary } from "../lib/api";
@@ -11,6 +11,7 @@ const COVER_FALLBACK = "https://images.unsplash.com/photo-1492684223066-81342ee5
 const ZOOM_STEP = 0.1;
 const PAN_STEP = 4;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const defaultEvents = [
   { title: "Welcome Session", dateLabel: "15 Dec 2026, 11:00 AM", location: "Delhi", description: "Guest arrival and opening." },
@@ -45,6 +46,8 @@ export default function CreatePage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState(defaultForm);
   const [selectedImageTarget, setSelectedImageTarget] = useState("cover");
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalEmail, setModalEmail] = useState("");
 
   const onChange = (key, value) => setForm((p) => ({ ...p, [key]: value }));
 
@@ -156,11 +159,19 @@ export default function CreatePage() {
     }
   }
 
-  async function handleGenerate() {
-    setError("");
-
+  function validateRequiredFields() {
     if (!form.groomName || !form.brideName || !form.eventDate || !form.venue) {
       setError("Please fill required fields");
+      return false;
+    }
+    return true;
+  }
+
+  async function createInvite(emailToUse) {
+    setError("");
+
+    if (!EMAIL_PATTERN.test(emailToUse)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -168,6 +179,7 @@ export default function CreatePage() {
     try {
       const payload = {
         ...form,
+        email: emailToUse,
         galleryUrls: form.galleryUrls,
         events: form.events.filter((e) => e.title || e.dateLabel || e.location || e.description)
       };
@@ -186,6 +198,32 @@ export default function CreatePage() {
     }
   }
 
+  async function handleGenerate() {
+    setError("");
+    if (!validateRequiredFields()) return;
+
+    const emailToUse = (form.email || "").trim();
+    if (!emailToUse) {
+      setModalEmail("");
+      setShowEmailModal(true);
+      return;
+    }
+
+    await createInvite(emailToUse);
+  }
+
+  async function submitEmailModal() {
+    const emailToUse = modalEmail.trim();
+    if (!EMAIL_PATTERN.test(emailToUse)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    onChange("email", emailToUse);
+    setShowEmailModal(false);
+    await createInvite(emailToUse);
+  }
+
   return (
     <main className="min-h-screen px-4 py-5">
       {!opened && <OpeningCurtain onOpen={() => setOpened(true)} />}
@@ -199,9 +237,62 @@ export default function CreatePage() {
         </div>
       )}
 
+      <AnimatePresence>
+        {showEmailModal && (
+          <motion.div
+            className="fixed inset-0 z-[60] grid place-items-center bg-black/70 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="card w-full max-w-md p-5"
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.98 }}
+              transition={{ duration: 0.24 }}
+            >
+              <p className="section-title">Delivery Email</p>
+              <h3 className="mt-2 font-serif text-3xl text-wedding-gold">Receive Your Links</h3>
+              <p className="mt-1 text-sm text-wedding-cream/75">
+                Enter your email to receive your invitation link.
+              </p>
+              <div className="mt-4">
+                <label className="label">Email Address</label>
+                <input
+                  className="input"
+                  type="email"
+                  value={modalEmail}
+                  onChange={(e) => setModalEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="tool-btn"
+                  onClick={() => setShowEmailModal(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={submitEmailModal}
+                  disabled={loading}
+                >
+                  {loading ? "Sending..." : "Continue"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <section className="card p-5">
-          <h1 className="font-serif text-5xl text-wedding-gold">Create Invitation</h1>
+          <h1 className="font-serif text-3xl text-wedding-gold sm:text-4xl md:text-5xl">Create Invitation</h1>
           <p className="mt-1 text-wedding-cream/70">Everything updates instantly in the live preview on the right.</p>
 
           <div className="mt-5 grid gap-5">
@@ -326,16 +417,17 @@ export default function CreatePage() {
             </div>
 
             <div className="card p-4">
-              <label className="label">Email (optional)</label>
+              <label className="label">Email (required)</label>
               <input className="input" type="email" value={form.email} onChange={(e) => onChange("email", e.target.value)} />
+              <p className="mt-2 text-xs text-wedding-cream/70">Your invitation link will be delivered to this email.</p>
             </div>
           </div>
 
           {error && <p className="mt-3 text-red-300">{error}</p>}
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <button className="btn" onClick={() => setShowPreview(true)} disabled={uploading}>Preview Full Webpage</button>
-            <button className="btn" onClick={handleGenerate} disabled={loading || uploading}>
+            <button className="btn w-full sm:w-auto" onClick={() => setShowPreview(true)} disabled={uploading}>Preview Full Webpage</button>
+            <button className="btn w-full sm:w-auto" onClick={handleGenerate} disabled={loading || uploading}>
               {loading ? "Generating..." : "Generate Invite Link"}
             </button>
           </div>
@@ -344,7 +436,7 @@ export default function CreatePage() {
         <motion.aside
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card sticky top-4 h-[calc(100vh-2rem)] overflow-hidden"
+          className="card h-[68vh] overflow-hidden lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]"
         >
           <div className="border-b border-wedding-gold/25 px-4 py-3">
             <p className="text-xs tracking-[0.35em] text-wedding-gold/70">LIVE FULL PREVIEW</p>
